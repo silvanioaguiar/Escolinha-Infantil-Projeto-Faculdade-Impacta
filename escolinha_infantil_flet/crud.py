@@ -1,7 +1,6 @@
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session
 import models
 from datetime import date
-from typing import List, Dict
 
 # --- Funções CRUD para Aluno ---
 def create_aluno(db: Session, nome_completo: str, data_nascimento: date, nome_responsavel: str, telefone_responsavel: str, endereco: str):
@@ -38,4 +37,3 @@ def delete_aluno(db: Session, aluno_id: int):
         db.delete(db_aluno)
         db.commit()
     return db_aluno
-
