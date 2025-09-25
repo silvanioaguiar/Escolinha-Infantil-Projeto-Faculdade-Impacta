@@ -25,16 +25,37 @@ def create_alunos_view(page: ft.Page):
         last_date=datetime.now(),        
     )   
 
+    def formatar_telefone(field):
+        digits = ''.join(filter(str.isdigit, field.value))[:11]
+        formatted = ""
+        if len(digits) >= 2:
+            formatted += f"({digits[:2]}) "
+        if len(digits) >= 7:
+            formatted += f"{digits[2:7]}-{digits[7:]}"
+        elif len(digits) > 2:
+            formatted += digits[2:]
+
+        # Só atualiza se o valor mudou
+        if field.value != formatted:
+            field.value = formatted
+            field.update()
+    
     def open_date_picker_dialog(e):
-        page.open(date_picker)    
+        date_picker.visible = True
+        page.open(date_picker)
+        page.update()  
 
     nascimento_field_row = ft.Row([
         nascimento_display_field,
         ft.IconButton(ft.Icons.CALENDAR_MONTH, on_click=open_date_picker_dialog)
     ])
-    responsavel_field = ft.TextField(label="Nome do Responsável")
-    telefone_field = ft.TextField(label="Telefone do Responsável")
+    responsavel_field = ft.TextField(label="Nome do Responsável")    
     endereco_field = ft.TextField(label="Endereço")
+
+    telefone_field = ft.TextField(
+        label="Telefone do Responsável",    
+        on_blur=lambda e: formatar_telefone(e.control)
+    )
 
     # --- Tabela de Dados ---
     alunos_table = ft.DataTable(
@@ -43,6 +64,7 @@ def create_alunos_view(page: ft.Page):
             ft.DataColumn(ft.Text("Nascimento")),
             ft.DataColumn(ft.Text("Responsável")),
             ft.DataColumn(ft.Text("Telefone")),
+            ft.DataColumn(ft.Text("Endereço")),
             ft.DataColumn(ft.Text("Ações")),
         ],
         rows=[]
@@ -73,7 +95,6 @@ def create_alunos_view(page: ft.Page):
                         endereco=edit_endereco_field.value
                     )
                 alunos_table.rows = load_data()
-                close_dialog(None)
                 page.update()
             except ValueError:
                 edit_nascimento_display_field.error_text = "Formato de data inválido. Use dd/mm/aaaa."
@@ -82,6 +103,7 @@ def create_alunos_view(page: ft.Page):
                 print(f"Erro ao editar aluno: {ex}")
 
         def save_edit(e):
+            close_dialog(e)
             page.run_thread(save_edit_threaded)
 
         edit_dialog = ft.AlertDialog(
@@ -115,6 +137,7 @@ def create_alunos_view(page: ft.Page):
                             ft.DataCell(ft.Text(aluno.data_nascimento.strftime("%d/%m/%Y"))),
                             ft.DataCell(ft.Text(aluno.nome_responsavel)),
                             ft.DataCell(ft.Text(aluno.telefone_responsavel)),
+                            ft.DataCell(ft.Text(aluno.endereco)),
                             ft.DataCell(ft.Row([
                                 ft.IconButton(ft.Icons.EDIT, icon_color="blue", on_click=lambda e, a=aluno: open_edit_dialog(a)),
                                 ft.IconButton(ft.Icons.DELETE, icon_color="red", on_click=lambda e, a=aluno: delete_aluno(a)),
@@ -170,7 +193,16 @@ def create_alunos_view(page: ft.Page):
             ),
             ft.Divider(),
             ft.Text("Alunos Cadastrados", size=20),
-            ft.Row([alunos_table], scroll=ft.ScrollMode.ALWAYS)
+             ft.Container(
+                height=200,
+                content=ft.ListView(
+                    controls=[alunos_table],
+                    expand=True,
+                    spacing=10,
+                    padding=10,
+                    auto_scroll=False
+                )
+            )
         ]
     )
     

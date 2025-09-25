@@ -2,6 +2,8 @@ import flet as ft
 import database
 import models
 from views import alunos_view
+from views import professores_view
+
 
 try:
     models.Base.metadata.create_all(bind=database.engine)
@@ -15,38 +17,43 @@ def main(page: ft.Page):
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
 
     def route_change(route):
-        page.views.clear()
-        page.views.append(
-            ft.View(
-                "/",
-                [
-                    ft.Text("Bem-vindo ao Sistema da Escolinha!", size=30),
-                    ft.Row(
-                        [   
-                            ft.TextButton(
-                            content=ft.Row([
-                                ft.Icon(name=ft.Icons.BOOK),
-                                ft.Text("Agenda")
-                            ]),                           
-                            ),
+         # Evita duplicação de views
+        if page.views and page.views[-1].route == page.route:
+            return  
 
-                            ft.TextButton(
-                            content=ft.Row([
-                                ft.Icon(name=ft.Icons.APP_REGISTRATION),
-                                ft.Text("Cadastros")
-                            ]),
-                            on_click=lambda _: page.go("/cadastros")),
+        if page.route == "/":
+            page.views.clear()  
+            page.views.append(
+                ft.View(
+                    "/",
+                    [
+                        ft.Text("Bem-vindo ao Sistema da Escolinha!", size=30),
+                        ft.Row(
+                            [   
+                                ft.TextButton(
+                                content=ft.Row([
+                                    ft.Icon(name=ft.Icons.BOOK),
+                                    ft.Text("Agenda")
+                                ]),                           
+                                ),
 
-                           
-                        ],
-                        alignment=ft.MainAxisAlignment.CENTER
-                    )
-                ],
-                vertical_alignment=ft.MainAxisAlignment.CENTER,
-                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                                ft.TextButton(
+                                content=ft.Row([
+                                    ft.Icon(name=ft.Icons.APP_REGISTRATION),
+                                    ft.Text("Cadastros")
+                                ]),
+                                on_click=lambda _: page.go("/cadastros")),
+
+                            
+                            ],
+                            alignment=ft.MainAxisAlignment.CENTER
+                        )
+                    ],
+                    vertical_alignment=ft.MainAxisAlignment.CENTER,
+                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                )
             )
-        )
-        if page.route == "/agenda":
+        elif page.route == "/agenda":
             page.views.append(
                 ft.View(
                     "/agenda",
@@ -63,7 +70,7 @@ def main(page: ft.Page):
                     [
                         ft.AppBar(title=ft.Text("Cadastros", color=ft.Colors.WHITE), bgcolor=ft.Colors.ON_SURFACE_VARIANT),
                         ft.ElevatedButton("Alunos", on_click=lambda _: page.go("/cadastros/alunos")),
-                        ft.ElevatedButton("Professores" ),
+                        ft.ElevatedButton("Professores", on_click=lambda _: page.go("/cadastros/professores")),
                         ft.ElevatedButton("Atividades"),
                         ft.ElevatedButton("Cardápio"),
                     ],
@@ -79,13 +86,24 @@ def main(page: ft.Page):
                     ]
                 )
             )
-       
+        elif page.route == "/cadastros/professores":
+            page.views.append(
+                ft.View(
+                    "/cadastros/professores",
+                    [
+                        ft.AppBar(title=ft.Text("Cadastro de Professores", color=ft.Colors.WHITE), bgcolor=ft.Colors.ON_SURFACE_VARIANT),
+                        professores_view.create_professores_view(page)
+                    ]
+                )
+            )
+    
         page.update()
 
     def view_pop(view):
         page.views.pop()
         top_view = page.views[-1]
         page.go(top_view.route)
+    
 
     page.on_route_change = route_change
     page.on_view_pop = view_pop
