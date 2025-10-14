@@ -3,7 +3,8 @@ import database
 import models
 from views import alunos_view
 from views import professores_view
-
+from views import atividades_view
+from views import cardapio_view
 
 try:
     models.Base.metadata.create_all(bind=database.engine)
@@ -71,8 +72,8 @@ def main(page: ft.Page):
                         ft.AppBar(title=ft.Text("Cadastros", color=ft.Colors.WHITE), bgcolor=ft.Colors.ON_SURFACE_VARIANT),
                         ft.ElevatedButton("Alunos", on_click=lambda _: page.go("/cadastros/alunos")),
                         ft.ElevatedButton("Professores", on_click=lambda _: page.go("/cadastros/professores")),
-                        ft.ElevatedButton("Atividades"),
-                        ft.ElevatedButton("Cardápio"),
+                        ft.ElevatedButton("Atividades", on_click=lambda _: page.go("/cadastros/atividades")),
+                        ft.ElevatedButton("Cardápio", on_click=lambda _: page.go("/cadastros/cardapio")),
                     ],
                 )
             )
@@ -96,7 +97,26 @@ def main(page: ft.Page):
                     ]
                 )
             )
-    
+        elif page.route == "/cadastros/atividades":
+            page.views.append(
+                ft.View(
+                    "/cadastros/atividades",
+                    [
+                        ft.AppBar(title=ft.Text("Cadastro de Atividades", color=ft.Colors.WHITE), bgcolor=ft.Colors.ON_SURFACE_VARIANT),
+                        atividades_view.create_atividades_view(page)
+                    ]
+                )
+            )
+        elif page.route == "/cadastros/cardapio":
+            page.views.append(
+                ft.View(
+                    "/cadastros/cardapio",
+                    [
+                        ft.AppBar(title=ft.Text("Cadastro de Cardápio", color=ft.Colors.WHITE), bgcolor=ft.Colors.ON_SURFACE_VARIANT),
+                        cardapio_view.create_cardapio_view(page)
+                    ]
+                )
+            )
         page.update()
 
     def view_pop(view):

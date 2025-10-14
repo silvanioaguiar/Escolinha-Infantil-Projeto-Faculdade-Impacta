@@ -20,6 +20,24 @@ class Professor(Base):
     cpf = Column(String(14), unique=True, index=True, nullable=False)
     telefone = Column(String(20))
     email = Column(String(100))
-    
+
+class Atividade(Base):
+    __tablename__ = "atividades"
+
+    id = Column(Integer, primary_key=True, index=True)
+    nome = Column(String(100), nullable=False)
+    descricao = Column(Text)
+    idade_recomendada = Column(String(50))
+
+    # Relacionamento com a tabela de associação
+    # agendas_associadas = relationship("AgendaAtividade", back_populates="atividade")
+
+class Cardapio(Base):
+    __tablename__ = "cardapios"
+
+    id = Column(Integer, primary_key=True, index=True)
+    data = Column(Date, nullable=False, index=True)
+    tipo_refeicao = Column(String(50), nullable=False) # Ex: Lanche da Manhã, Almoço
+    descricao = Column(Text, nullable=False)   
     
 
