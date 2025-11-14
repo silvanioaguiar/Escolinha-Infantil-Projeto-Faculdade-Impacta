@@ -5,6 +5,7 @@ from views import alunos_view
 from views import professores_view
 from views import atividades_view
 from views import cardapio_view
+from views import agenda_view
 
 try:
     models.Base.metadata.create_all(bind=database.engine)
@@ -35,7 +36,8 @@ def main(page: ft.Page):
                                 content=ft.Row([
                                     ft.Icon(name=ft.Icons.BOOK),
                                     ft.Text("Agenda")
-                                ]),                           
+                                ]),  
+                                on_click=lambda _: page.go("/agenda"),                         
                                 ),
 
                                 ft.TextButton(
@@ -58,7 +60,7 @@ def main(page: ft.Page):
             page.views.append(
                 ft.View(
                     "/agenda",
-                    [
+                    [   
                         ft.AppBar(title=ft.Text("Agenda"), bgcolor=ft.Colors.ON_SURFACE_VARIANT),
                         agenda_view.create_agenda_view(page)
                     ]

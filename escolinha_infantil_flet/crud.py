@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 import models
 from datetime import date
+from sqlalchemy.orm import joinedload
 
 # --- Funções CRUD para Aluno ---
 def create_aluno(db: Session, nome_completo: str, data_nascimento: date, nome_responsavel: str, telefone_responsavel: str, endereco: str):
@@ -125,3 +126,75 @@ def delete_cardapio(db: Session, cardapio_id: int):
         db.delete(db_cardapio)
         db.commit()
     return db_cardapio
+
+# --- Funções CRUD para Agenda ---
+def create_agenda(
+    db: Session, 
+    aluno_id: int, 
+    data: date, 
+    professor_id:int,
+    humor: str, 
+    # alimentacao: str, 
+    lanche_manha: str,
+    almoco: str,
+    lanche_tarde: str,
+    jantar: str,
+    cardapio:str,
+    sono: str, 
+    observacoes: str,
+    atividades_outras: str,
+    atividades_selecionadas: list[dict]  # Ex: [{"atividade_id": 1, "horario": "10:00"}]
+):
+    # Cria a entrada principal da agenda
+    db_agenda = models.Agenda(
+        aluno_id=aluno_id,
+        data=data,
+        professor_id=professor_id,
+        humor=humor,
+        # alimentacao=alimentacao,
+        lanche_manha=lanche_manha,
+        almoco=almoco,
+        lanche_tarde=lanche_tarde,
+        jantar=jantar,
+        cardapio=cardapio,
+        sono=sono,
+        observacoes=observacoes,
+        atividades_outras=atividades_outras
+    )
+    db.add(db_agenda)
+    db.commit()
+    db.refresh(db_agenda)
+
+    # Cria as entradas na tabela de associação
+    for ativ in atividades_selecionadas:
+        db_agenda_atividade = models.AgendaAtividade(
+            agenda_id=db_agenda.id,
+            atividade_id=ativ["atividade_id"],
+            horario=ativ["horario"]
+        )
+        db.add(db_agenda_atividade)
+    
+    db.commit()
+    db.refresh(db_agenda)
+    return db_agenda
+
+def get_agendas_por_aluno(db: Session, aluno_id: int):
+    return (
+        db.query(models.Agenda)
+        .filter(models.Agenda.aluno_id == aluno_id)
+        .options(
+            joinedload(models.Agenda.atividades_realizadas)
+            .joinedload(models.AgendaAtividade.atividade)
+        )
+        .order_by(models.Agenda.data.desc())
+        .all()
+    )
+
+def delete_agenda(db: Session, agenda_id: int):
+    # O cascade="all, delete-orphan" no modelo cuidará de deletar as entradas
+    # na tabela de associação 'agenda_atividades' automaticamente.
+    db_agenda = db.query(models.Agenda).filter(models.Agenda.id == agenda_id).first()
+    if db_agenda:
+        db.delete(db_agenda)
+        db.commit()
+    return db_agenda
